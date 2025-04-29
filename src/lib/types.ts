@@ -2,13 +2,19 @@ export type UserRole = "USER" | "ADMIN";
 
 export interface User {
   id: string;
+  uuid: string;
   fullName: string;
+  initialName: string;
   email: string;
+  isEmailVerified: boolean;
+  isDetailCompleted: boolean;
   phoneNumber: string;
   gender: "male" | "female";
   birthDate: string;
+  university: string;
   address: string;
   role: UserRole;
+  birthPlace: string;
   registrationDate: string;
 }
 
@@ -50,10 +56,38 @@ export interface RegisterFormData {
   address: string;
 }
 
-export interface ApiResponse<T> {
-  status: "success" | "error";
+export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
+
+export interface SuccessResponse<T> {
+  status: "success";
+  data: T;
   message?: string;
-  data?: T;
+  meta_data?: any;
+}
+
+export interface ErrorResponse {
+  status: "error";
+  message?: string;
+  errors?: Record<string, any>;
+  meta_data?: any;
+}
+
+export function isSuccessResponse<T>(
+  res: ApiResponse<T>
+): res is SuccessResponse<T> {
+  return res.status === "success";
+}
+
+export interface ApiMemberResponse {
+  id: number;
+  uuid?: string;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  gender: string;
+  birth_date: string;
+  address: string;
+  created_at: string;
 }
 
 export interface FormErrors {

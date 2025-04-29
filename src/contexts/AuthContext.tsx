@@ -73,8 +73,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.login(data);
 
-      if (response.status === "success" && response.data) {
-        const { token, user } = response.data;
+      // Check if response has successful status and is a SuccessResponse type (has data property)
+      if (response.status === "success" && "data" in response) {
+        const { account, token } = response.data;
+
+        // Create a user object that conforms to the User type
+        const user: User = {
+          id: String(account.id),
+          uuid: account.uuid,
+          email: account.email,
+          isEmailVerified: account.is_email_verified,
+          isDetailCompleted: account.is_detail_completed,
+          fullName: "",
+          phoneNumber: "",
+          gender: "male", // Default to male
+          birthDate: "",
+          university: "",
+          address: "",
+          birthPlace: "",
+          initialName: "",
+          role: "USER", // ✅ default role
+          registrationDate: new Date().toISOString(), // ✅ default current time
+        };
 
         // Store token and user info
         setAuthToken(token);
@@ -113,21 +133,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.register(data);
 
-      if (response.status === "success" && response.data) {
-        const { token, user } = response.data;
-
-        // Store token and user info
-        setAuthToken(token);
-        setUser(user);
-
-        setState({
-          isAuthenticated: true,
-          user,
-          loading: false,
-          error: null,
+      // Check if response has successful status and is a SuccessResponse type (has data property)
+      if (response.status === "success" && "data" in response) {
+        // For registration, we need to perform a login to get the token
+        const loginResult = await login({
+          email: data.email,
+          password: data.password,
         });
 
-        return true;
+        return loginResult;
       } else {
         setState({
           ...state,
@@ -170,13 +184,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.getCurrentUser();
 
-      if (response.status === "success" && response.data) {
+      // Check if response has successful status and is a SuccessResponse type (has data property)
+      if (response.status === "success" && "data" in response) {
+        const { account, details } = response.data;
+
+        // Create a user object that conforms to the User type
+        const user: User = {
+          id: String(account.id), // ✅ Konversi number → string
+          uuid: account.uuid,
+          email: account.email,
+          isEmailVerified: account.is_email_verified,
+          isDetailCompleted: account.is_detail_completed,
+          fullName: details.full_name || "",
+          phoneNumber: details.phone_number || "",
+          gender: "male", // ✅ Default, Anda bisa update jika backend mengembalikan gender
+          birthDate: "", // ✅ Kosong karena tidak tersedia
+          university: details.university || "",
+          address: "", // ✅ Kosong karena tidak tersedia
+          birthPlace: "", // ✅ Kosong karena tidak tersedia
+          initialName: details.initial_name || "",
+          role: "USER", // ✅ Default role
+          registrationDate: new Date().toISOString(), // ✅ Default ke waktu sekarang
+        };
+
         // Update user data
-        setUser(response.data);
+        setUser(user);
 
         setState({
           ...state,
-          user: response.data,
+          user,
           loading: false,
         });
       } else {

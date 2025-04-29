@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { membersApi } from "@/lib/api";
+import { isSuccessResponse } from "@/lib/types";
 
 // Import shadcn components
 import {
@@ -67,10 +68,10 @@ export default function MemberList({
       setError(null);
 
       try {
-        const response = await membersApi.getAllMembers();
+        const response = await membersApi.getMembers(); // ✅ Pastikan return-nya ApiResponse<Member[]>
 
-        if (response.status === "success" && response.data) {
-          setMembers(response.data);
+        if (isSuccessResponse(response)) {
+          setMembers(response.data); // ✅ TypeScript paham: response = SuccessResponse<Member[]>
         } else {
           setError(response.message || "Failed to fetch members.");
         }

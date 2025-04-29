@@ -118,9 +118,23 @@ export default function RegistrationForm() {
       try {
         const response = await membersApi.addMember(formData);
 
-        if (response.status === "success" && response.data) {
-          // Show success modal
-          setAddedMember(response.data);
+        // Check if response has successful status and is a SuccessResponse type (has data property)
+        if (response.status === "success" && "data" in response) {
+          // Map API member to component member format
+          const rawGender = response.data.gender?.toLowerCase();
+
+          const memberData: Member = {
+            id: String(response.data.id),
+            fullName: response.data.full_name,
+            email: response.data.email,
+            phoneNumber: response.data.phone_number,
+            gender: rawGender === "male" ? "male" : "female", // ✅ Normalisasi dan validasi
+            birthDate: response.data.birth_date,
+            address: response.data.address,
+            registrationDate: response.data.created_at,
+          };
+
+          setAddedMember(memberData);
           setIsSuccessModalOpen(true);
 
           // Reset form
