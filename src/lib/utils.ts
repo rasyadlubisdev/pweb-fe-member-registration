@@ -11,122 +11,46 @@ export function generateId(): string {
 }
 
 export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 export function validateMemberForm(data: MemberFormData): FormErrors {
-  
-  // Validate full name
-  if (!data.fullName?.trim()) {
-    errors.fullName = "Nama lengkap wajib diisi";
-  }
-  
-  // Validate email
-  if (!data.email?.trim()) {
-    errors.email = "Email wajib diisi";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Format email tidak valid";
-  }
-  
-  // Validate phone number
-  if (!data.phoneNumber?.trim()) {
-    errors.phoneNumber = "Nomor HP wajib diisi";
-  } else if (!/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(data.phoneNumber)) {
-    errors.phoneNumber = "Format nomor HP tidak valid (format: 08xxxxxxxxxx)";
-  }
-  
-  // Validate gender
-  if (!data.gender) {
-    errors.gender = "Gender wajib dipilih";
-  }
-  
-  // Validate birth date
-  if (!data.birthDate) {
-    errors.birthDate = "Tanggal lahir wajib diisi";
-  }
-  
-  // Validate address
-  if (!data.address?.trim()) {
-    errors.address = "Alamat wajib diisi";
-  }
-  
-  return errors;
-  
-  // Validate full name
-  if (!data.fullName?.trim()) {
-    errors.fullName = "Nama lengkap wajib diisi";
-  }
-  
-  // Validate email
-  if (!data.email?.trim()) {
-    errors.email = "Email wajib diisi";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Format email tidak valid";
-  }
-  
-  // Validate phone number
-  if (!data.phoneNumber?.trim()) {
-    errors.phoneNumber = "Nomor HP wajib diisi";
-  } else if (!/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(data.phoneNumber)) {
-    errors.phoneNumber = "Format nomor HP tidak valid (format: 08xxxxxxxxxx)";
-  }
-  
-  // Validate gender
-  if (!data.gender) {
-    errors.gender = "Gender wajib dipilih";
-  }
-  
-  // Validate birth date
-  if (!data.birthDate) {
-    errors.birthDate = "Tanggal lahir wajib diisi";
-  }
-  
-  // Validate address
-  if (!data.address?.trim()) {
-    errors.address = "Alamat wajib diisi";
-  }
-  
-  return errors;
-}
+  const errors: FormErrors = {};
 
-export function isFormValid(errors: FormErrors): boolean {
-  return Object.keys(errors).length === 0;
-}
-  
   // Validate full name
-  if (!data.fullName.trim()) {
+  if (!data.fullName?.trim()) {
     errors.fullName = "Nama lengkap wajib diisi";
   }
-  
+
   // Validate email
-  if (!data.email.trim()) {
+  if (!data.email?.trim()) {
     errors.email = "Email wajib diisi";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     errors.email = "Format email tidak valid";
   }
-  
+
   // Validate phone number
-  if (!data.phoneNumber.trim()) {
+  if (!data.phoneNumber?.trim()) {
     errors.phoneNumber = "Nomor HP wajib diisi";
   } else if (!/^(\+62|62|0)8[1-9][0-9]{6,9}$/.test(data.phoneNumber)) {
     errors.phoneNumber = "Format nomor HP tidak valid (format: 08xxxxxxxxxx)";
   }
-  
+
   // Validate gender
   if (!data.gender) {
     errors.gender = "Gender wajib dipilih";
   }
-  
+
   // Validate birth date
   if (!data.birthDate) {
     errors.birthDate = "Tanggal lahir wajib diisi";
   }
-  
+
   // Validate address
-  if (!data.address.trim()) {
+  if (!data.address?.trim()) {
     errors.address = "Alamat wajib diisi";
   }
-  
+
   return errors;
 }
 

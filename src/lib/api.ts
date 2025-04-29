@@ -10,7 +10,7 @@ import {
 import { getAuthToken } from "./auth";
 
 // Define API base URL - update this to match your backend
-const API_BASE_URL = "https://api.example.com";
+const API_BASE_URL = "https://lifedebugger-pweb-api-ets.hf.space/api/v1";
 
 // Create axios instance
 const api = axios.create({
