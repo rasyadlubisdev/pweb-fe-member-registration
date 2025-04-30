@@ -5,8 +5,7 @@ import { Member } from "@/lib/types";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
-import { membersApi } from "@/lib/api";
-import { isSuccessResponse } from "@/lib/types";
+import { generateId } from "@/lib/utils";
 
 // Import shadcn components
 import {
@@ -42,7 +41,11 @@ import {
   Users,
   AlertCircle,
   Loader2,
+  Shield,
 } from "lucide-react";
+
+// Use custom hook for member management
+import { useMembers } from "@/hooks/useMembers";
 
 interface MemberListProps {
   onDeleteMember?: (id: string) => void;
@@ -54,36 +57,13 @@ export default function MemberList({
   onOpenDeleteConfirm,
 }: MemberListProps) {
   const { user } = useAuth();
+  // Explicitly check for ADMIN role - user must be ADMIN to delete
   const isAdmin = user?.role === "ADMIN";
 
-  const [members, setMembers] = useState<Member[]>([]);
+  // Use the custom hook for member management
+  const { members, isLoading: loading, deleteMember } = useMembers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch members from API
-  useEffect(() => {
-    const fetchMembers = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await membersApi.getMembers(); // ✅ Pastikan return-nya ApiResponse<Member[]>
-
-        if (isSuccessResponse(response)) {
-          setMembers(response.data); // ✅ TypeScript paham: response = SuccessResponse<Member[]>
-        } else {
-          setError(response.message || "Failed to fetch members.");
-        }
-      } catch (error) {
-        setError("Something went wrong while fetching members.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMembers();
-  }, []);
 
   const filteredMembers = members.filter(
     (member) =>
@@ -92,28 +72,33 @@ export default function MemberList({
       member.phoneNumber.includes(searchTerm)
   );
 
-  const handleDeleteMember = async (id: string) => {
-    if (!isAdmin || !onDeleteMember) return;
+  // Handle member deletion - only admin can delete
+  const handleDeleteMember = (id: string) => {
+    if (!isAdmin) {
+      setError("Anda tidak memiliki izin untuk menghapus member");
+      return;
+    }
 
     try {
-      const response = await membersApi.deleteMember(id);
+      // Call the hook's delete function
+      deleteMember(id);
 
-      if (response.status === "success") {
-        // Call the parent component's delete handler
+      // Call the parent component's delete handler if provided
+      if (onDeleteMember) {
         onDeleteMember(id);
-        // Update the local state
-        setMembers((prev) => prev.filter((member) => member.id !== id));
-      } else {
-        setError(response.message || "Failed to delete member.");
       }
     } catch (error) {
-      setError("Something went wrong while deleting member.");
+      setError("Terjadi kesalahan saat menghapus member");
     }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "dd MMMM yyyy", { locale: id });
+    try {
+      const date = new Date(dateString);
+      return format(date, "dd MMMM yyyy", { locale: id });
+    } catch (error) {
+      return dateString;
+    }
   };
 
   if (loading) {
@@ -169,10 +154,15 @@ export default function MemberList({
                 {members.length}
               </Badge>
             </CardTitle>
-            <CardDescription>
-              {isAdmin
-                ? "Manage semua member terdaftar dalam sistem"
-                : "Lihat semua member terdaftar dalam sistem"}
+            <CardDescription className="flex items-center gap-1">
+              {isAdmin ? (
+                <>
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span>Anda memiliki hak akses untuk mengelola member</span>
+                </>
+              ) : (
+                "Lihat semua member terdaftar dalam sistem"
+              )}
             </CardDescription>
           </div>
           <div className="relative">
@@ -202,6 +192,7 @@ export default function MemberList({
                 <TableHead className="hidden lg:table-cell">
                   Tgl Registrasi
                 </TableHead>
+                {/* Only show action column if user is admin */}
                 {isAdmin && <TableHead style={{ width: "60px" }}></TableHead>}
               </TableRow>
             </TableHeader>
@@ -234,6 +225,7 @@ export default function MemberList({
                     <TableCell className="hidden lg:table-cell">
                       {formatDate(member.registrationDate)}
                     </TableCell>
+                    {/* Only render delete option if user is admin */}
                     {isAdmin && (
                       <TableCell>
                         <DropdownMenu>
@@ -268,6 +260,18 @@ export default function MemberList({
         <span className="text-sm text-gray-500">
           Total: {members.length} member
         </span>
+        {/* Only show total delete button for admin */}
+        {isAdmin && members.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-600 border-red-200 hover:bg-red-50"
+            onClick={() => onOpenDeleteConfirm && onOpenDeleteConfirm(null)}
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Hapus Semua
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

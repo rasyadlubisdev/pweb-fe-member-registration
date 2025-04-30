@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import MemberList from "@/components/dashboard/MemberList";
 import DeleteConfirmModal from "@/components/shared/DeleteConfirmModal";
-import { membersApi } from "@/lib/api";
+import { useMembers } from "@/hooks/useMembers";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, loading, user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
+  const { deleteAllMembers, deleteMember } = useMembers();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
@@ -29,17 +30,22 @@ export default function DashboardPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!isAdmin || !selectedMemberId) return;
+  const handleDelete = () => {
+    if (!isAdmin) return;
 
     try {
-      await membersApi.deleteMember(selectedMemberId);
+      if (selectedMemberId) {
+        // Delete single member
+        deleteMember(selectedMemberId);
+      } else {
+        // Delete all members
+        deleteAllMembers();
+      }
+
       // Close modal
       setIsDeleteModalOpen(false);
       // Reset selected ID
       setSelectedMemberId(null);
-      // Refresh the page to show updated member list
-      window.location.reload();
     } catch (error) {
       console.error("Error deleting member:", error);
     }
@@ -64,7 +70,7 @@ export default function DashboardPage() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        isDeleteAll={false}
+        isDeleteAll={selectedMemberId === null}
       />
     </div>
   );
